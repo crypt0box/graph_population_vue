@@ -2,10 +2,17 @@
   <v-app>
     <v-main>
       <v-data-table
+        v-model="selectedPref"
         :headers="headers"
         :items="prefList"
         :items-per-page="5"
+        :single-select="singleSelect"
+        item-key="prefCode"
+        show-select
       ></v-data-table>
+      <div v-for="code in selectedPref" :key="code.prefCode">
+        {{ code.prefCode }}
+      </div>
     </v-main>
   </v-app>
 </template>
@@ -17,7 +24,6 @@ export default {
   name: "App",
   data() {
     return {
-      prefList: [],
       headers: [
         {
           text: 'No.',
@@ -31,6 +37,8 @@ export default {
           value: 'prefName'
         },
       ],
+      prefList: [],
+      selectedPref: [],
     }
   },
   mounted() {
