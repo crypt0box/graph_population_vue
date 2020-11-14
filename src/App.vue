@@ -1,7 +1,11 @@
 <template>
   <v-app>
     <v-main>
-      {{ prefList }}
+      <v-data-table
+        :headers="headers"
+        :items="prefList"
+        :items-per-page="5"
+      ></v-data-table>
     </v-main>
   </v-app>
 </template>
@@ -13,7 +17,20 @@ export default {
   name: "App",
   data() {
     return {
-      prefList: []
+      prefList: [],
+      headers: [
+        {
+          text: 'No.',
+          align: 'start',
+          sortable: false,
+          value: 'prefCode',
+        },
+        { 
+          text: '都道府県名',
+          sortable: false,
+          value: 'prefName'
+        },
+      ],
     }
   },
   mounted() {
