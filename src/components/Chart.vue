@@ -5,29 +5,9 @@ export default {
   extends: Line,
   name: 'chart',
   mixins: [mixins.reactiveProp],
-  props: ['chartData'],
-  data() {
-    return {
-      graphOptions: {
-        scales: {
-          xAxes: [{
-            scaleLabel: {
-              display: true,
-              labelString: 'Month'
-            }
-          }],
-          yAxes: [{
-            ticks: {
-              beginAtZero: true,
-              stepSize: 100,
-            }
-          }]
-        }
-      }
-    }
-  },
+  props: ['chartData', 'options'],
   mounted() {
-    this.renderChart(this.chartData, this.graphOptions);
+    this.renderChart(this.chartData, this.options);
   }
 }
 </script>
