@@ -10,10 +10,7 @@
         item-key="prefCode"
         show-select
       ></v-data-table>
-      <div v-for="code in chartData" :key="code.index">
-        {{ code }}
-      </div>
-      <chart :chart-data="chartData"></chart>
+      <chart :chart-data="chartData" :options="options"></chart>
     </v-main>
   </v-app>
 </template>
@@ -44,17 +41,33 @@ export default {
       ],
       prefList: [],
       selectedPref: [],
-      chartData: {
+      chartDataTemplate: {
         labels: [],
-        datasets: {
+        datasets: [{
           label: 'Line Dataset',
           data: [],
           borderColor: '#CFD8DC',
           fill: false,
           type: 'line',
           lineTension: 0.3,
-        },
+        }],
       },
+      chartData: null,
+      options: {
+        scales: {
+          xAxes: [{
+            scaleLabel: {
+              display: true,
+              labelString: '西暦'
+            }
+          }],
+          yAxes: [{
+            ticks: {
+              beginAtZero: true,
+            }
+          }]
+        }
+      }
     }
   },
   mounted() {
@@ -69,25 +82,9 @@ export default {
   },
   watch: {
     // 都道府県がチェックされると発火
-    selectedPref: {
-      deep: true,
-      handler() {
-        // 選択した都道府県の人口構成を取得
-        this.getPopulation(this.selectedPref[0].prefCode)
-          .then(result => {
-            this.chartData.labels = [];
-            this.chartData.datasets.data = [];
-            // 取得した人口構成データをグラフ描画用変数に代入
-            result.forEach(element => {
-              this.chartData.labels.push(String(element.year));
-              this.chartData.datasets.data.push(element.value);
-            });
-          })
-          .catch(error => {
-            console.log(error);
-          });
-      }
-    },
+    selectedPref() {
+      this.updateChartData();
+    }
   },
   methods: {
     // 指定した都道府県コードの人口構成をaxiosで取得
@@ -105,6 +102,24 @@ export default {
         console.log(`Error! HTTP Status: ${status} ${statusText}`);
       }
     },
+    updateChartData() {
+      // グラフをリアクティブにするため、値渡しを行う
+      const chartData = JSON.parse(JSON.stringify(this.chartDataTemplate))
+      // 選択した都道府県の人口構成を取得
+      this.getPopulation(this.selectedPref[0].prefCode)
+        .then(result => {
+          // 取得した人口構成データをグラフ描画用変数に代入
+          result.forEach(element => {
+            chartData.labels.push(String(element.year));
+            chartData.datasets[0].data.push(element.value);
+          });
+          // 値渡しで代入
+          this.chartData = chartData
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
   }
 };
 </script>
