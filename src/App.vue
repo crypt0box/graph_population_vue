@@ -6,13 +6,14 @@
         :headers="headers"
         :items="prefList"
         :items-per-page="5"
+        :single-select="true"
         item-key="prefCode"
         show-select
       ></v-data-table>
-      <div v-for="code in graphPref" :key="code.index">
+      <div v-for="code in chartData" :key="code.index">
         {{ code }}
       </div>
-      <chart :chart-data="graphPref"></chart>
+      <chart :chart-data="chartData"></chart>
     </v-main>
   </v-app>
 </template>
@@ -43,7 +44,7 @@ export default {
       ],
       prefList: [],
       selectedPref: [],
-      graphPref: {
+      chartData: {
         labels: [],
         datasets: {
           label: 'Line Dataset',
@@ -67,35 +68,29 @@ export default {
       .catch(error => console.log(error));
   },
   watch: {
-    // チェックされた都道府県を監視
+    // 都道府県がチェックされると発火
     selectedPref: {
       deep: true,
-      handler(newPref, oldPref) {
-        // 新しく選択した都道府県情報を取得
-        if (newPref.length >= oldPref.length) {
-          const newItem = newPref.filter(item => 
-            !oldPref.includes(item)
-          );
-          this.getPopulation(newItem[0].prefCode)
-            .then(result => {
-              this.graphPref.labels = [];
-              this.graphPref.datasets.data = [];
-              result.forEach(element => {
-                this.graphPref.labels.push(String(element.year));
-                this.graphPref.datasets.data.push(element.value);
-              });
-            })
-            .catch(error => {
-              console.log(error);
+      handler() {
+        // 選択した都道府県の人口構成を取得
+        this.getPopulation(this.selectedPref[0].prefCode)
+          .then(result => {
+            this.chartData.labels = [];
+            this.chartData.datasets.data = [];
+            // 取得した人口構成データをグラフ描画用変数に代入
+            result.forEach(element => {
+              this.chartData.labels.push(String(element.year));
+              this.chartData.datasets.data.push(element.value);
             });
-        } else {
-          console.log('削除')
-        }
+          })
+          .catch(error => {
+            console.log(error);
+          });
       }
     },
   },
   methods: {
-    // 指定した都道府県コードの人口構成を取得
+    // 指定した都道府県コードの人口構成をaxiosで取得
     async getPopulation(prefCode) {
       try {
         const populationUrl = `https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?-&prefCode=${prefCode}`;
