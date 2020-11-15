@@ -12,15 +12,20 @@
       <div v-for="code in graphPref" :key="code.index">
         {{ code }}
       </div>
+      <chart :chart-data="graphPref"></chart>
     </v-main>
   </v-app>
 </template>
 
 <script>
-import axios from "axios"
+import axios from "axios";
+import Chart from './components/Chart';
 
 export default {
   name: "App",
+  components: {
+    Chart,
+  },
   data() {
     return {
       headers: [
@@ -39,10 +44,16 @@ export default {
       prefList: [],
       selectedPref: [],
       graphPref: {
-        name: {},
-        population: {}
+        labels: [],
+        datasets: {
+          label: 'Line Dataset',
+          data: [],
+          borderColor: '#CFD8DC',
+          fill: false,
+          type: 'line',
+          lineTension: 0.3,
+        },
       },
-      graphPrefList: [],
     }
   },
   mounted() {
@@ -65,10 +76,14 @@ export default {
           const newItem = newPref.filter(item => 
             !oldPref.includes(item)
           );
-          this.graphPref.name = newItem[0];
           this.getPopulation(newItem[0].prefCode)
             .then(result => {
-              this.graphPref.population = result;
+              this.graphPref.labels = [];
+              this.graphPref.datasets.data = [];
+              result.forEach(element => {
+                this.graphPref.labels.push(String(element.year));
+                this.graphPref.datasets.data.push(element.value);
+              });
             })
             .catch(error => {
               console.log(error);
@@ -94,7 +109,7 @@ export default {
         } = error.response;
         console.log(`Error! HTTP Status: ${status} ${statusText}`);
       }
-    }
+    },
   }
 };
 </script>
