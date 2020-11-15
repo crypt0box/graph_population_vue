@@ -6,7 +6,6 @@
         :headers="headers"
         :items="prefList"
         :items-per-page="5"
-        :single-select="true"
         item-key="prefCode"
         show-select
       ></v-data-table>
@@ -43,14 +42,7 @@ export default {
       selectedPref: [],
       chartDataTemplate: {
         labels: [],
-        datasets: [{
-          label: 'Line Dataset',
-          data: [],
-          borderColor: '#CFD8DC',
-          fill: false,
-          type: 'line',
-          lineTension: 0.3,
-        }],
+        datasets: [],
       },
       chartData: null,
       options: {
@@ -81,10 +73,31 @@ export default {
       .catch(error => console.log(error));
   },
   watch: {
-    // 都道府県がチェックされると発火
-    selectedPref() {
-      this.updateChartData();
-    }
+    // 都道府県のチェックが[入る/外れる]と発火
+    selectedPref: {
+      deep: true,
+      handler(newPref, oldPref) {
+        // 新しく選択した都道府県情報のみを抽出
+        if (newPref.length >= oldPref.length) {
+          const newItem = newPref.filter(item => 
+            !oldPref.includes(item)
+          );
+          // グラフ描画用変数に抽出した都道府県情報のテンプレを追加
+          this.chartDataTemplate.datasets.push({
+            label: 'Line Dataset',
+            data: [],
+            borderColor: '#CFD8DC',
+            fill: false,
+            type: 'line',
+            lineTension: 0.3,
+          });
+          // グラフ描画用変数に抽出した都道府県の人口構成情報を代入
+          this.updateChartData(newItem[0].prefCode);
+        } else {
+          console.log('削除')
+        }
+      }
+    },
   },
   methods: {
     // 指定した都道府県コードの人口構成をaxiosで取得
@@ -95,23 +108,20 @@ export default {
         const items = response.data.result.data[0].data;
         return items
       } catch (error) {
-        const {
-          status,
-          statusText
-        } = error.response;
-        console.log(`Error! HTTP Status: ${status} ${statusText}`);
+        console.log(error);
       }
     },
-    updateChartData() {
+    updateChartData(prefCode) {
       // グラフをリアクティブにするため、値渡しを行う
       const chartData = JSON.parse(JSON.stringify(this.chartDataTemplate))
       // 選択した都道府県の人口構成を取得
-      this.getPopulation(this.selectedPref[0].prefCode)
+      this.getPopulation(prefCode)
         .then(result => {
           // 取得した人口構成データをグラフ描画用変数に代入
           result.forEach(element => {
             chartData.labels.push(String(element.year));
-            chartData.datasets[0].data.push(element.value);
+            chartData.datasets[this.selectedPref.length - 1].data.push(element.value);
+            this.chartDataTemplate.datasets[this.selectedPref.length - 1].data.push(element.value);
           });
           // 値渡しで代入
           this.chartData = chartData
