@@ -9,8 +9,8 @@
         item-key="prefCode"
         show-select
       ></v-data-table>
-      <div v-for="code in selectedPref" :key="code.prefCode">
-        {{ code.prefCode }}
+      <div v-for="code in graphPref" :key="code.index">
+        {{ code }}
       </div>
     </v-main>
   </v-app>
@@ -38,6 +38,11 @@ export default {
       ],
       prefList: [],
       selectedPref: [],
+      graphPref: {
+        name: {},
+        population: {}
+      },
+      graphPrefList: [],
     }
   },
   mounted() {
@@ -47,22 +52,48 @@ export default {
       .get(prefUrl, { headers: { 'X-API-KEY': 's0hFWhIFWYdTDQfS8M71K2SJ982pE3xJpmXi0h0w'}})
       .then(response => {
         this.prefList = response.data.result;
-        console.log(response);
       })
       .catch(error => console.log(error));
   },
   watch: {
-    // 選択した都道府県の人口構成をAPIで取得する
-    selectedPref(items) {
-      for (const item of items) {
-        const populationUrl = `https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?-&prefCode=${item.prefCode}`;
-        axios
-          .get(populationUrl, { headers: { 'X-API-KEY': 's0hFWhIFWYdTDQfS8M71K2SJ982pE3xJpmXi0h0w'}})
-          .then(response => {
-            console.log(response);
-          })
-          .catch(error => console.log(error));
-          }
+    // チェックされた都道府県を監視
+    selectedPref: {
+      deep: true,
+      handler(newPref, oldPref) {
+        // 新しく選択した都道府県情報を取得
+        if (newPref.length >= oldPref.length) {
+          const newItem = newPref.filter(item => 
+            !oldPref.includes(item)
+          );
+          this.graphPref.name = newItem[0];
+          this.getPopulation(newItem[0].prefCode)
+            .then(result => {
+              this.graphPref.population = result;
+            })
+            .catch(error => {
+              console.log(error);
+            });
+        } else {
+          console.log('削除')
+        }
+      }
+    },
+  },
+  methods: {
+    // 指定した都道府県コードの人口構成を取得
+    async getPopulation(prefCode) {
+      try {
+        const populationUrl = `https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?-&prefCode=${prefCode}`;
+        const response = await axios.get(populationUrl, { headers: { 'X-API-KEY': 's0hFWhIFWYdTDQfS8M71K2SJ982pE3xJpmXi0h0w'}});
+        const items = response.data.result.data[0].data;
+        return items
+      } catch (error) {
+        const {
+          status,
+          statusText
+        } = error.response;
+        console.log(`Error! HTTP Status: ${status} ${statusText}`);
+      }
     }
   }
 };
