@@ -59,7 +59,8 @@ export default {
       prefList: [],
       selectedPref: [],
       chartDataTemplate: {
-        labels: [],
+        labels: ['1960', '1965', '1970', '1975', '1980', '1985', '1990', '1995', '2000',
+                  '2005', '2010', '2015', '2020', '2025', '2030', '2035', '2040', '2045'],
         datasets: [],
       },
       chartData: null,
@@ -99,14 +100,15 @@ export default {
     selectedPref: {
       deep: true,
       handler(newPref, oldPref) {
-        // 新しく選択した都道府県情報のみを抽出
+        // チェックが[入ったか/外れたか]
         if (newPref.length >= oldPref.length) {
-          const newItem = newPref.filter(item => 
+          // チェックをいれた都道府県のみを抽出
+          const addedItem = newPref.filter(item => 
             !oldPref.includes(item)
           );
           // グラフ描画用変数に抽出した都道府県情報のテンプレを追加
           this.chartDataTemplate.datasets.push({
-            label: newItem[0].prefName,
+            label: addedItem[0].prefName,
             data: [],
             borderColor: this.getRandomColor(),
             fill: false,
@@ -114,9 +116,13 @@ export default {
             lineTension: 0.3,
           });
           // グラフ描画用変数に抽出した都道府県の人口構成情報を代入
-          this.updateChartData(newItem[0].prefCode);
+          this.updateChartData(addedItem[0].prefCode);
+        // チェックを外した都道府県のみを抽出
         } else {
-          console.log('削除')
+          const removedItem = oldPref.filter(item => 
+            !newPref.includes(item)
+          );
+          this.removeChartData(removedItem[0].prefName);
         }
       }
     },
@@ -133,7 +139,7 @@ export default {
         console.log(error);
       }
     },
-    updateChartData(prefCode) {
+    addChartData(prefCode) {
       // グラフをリアクティブにするため、値渡しを行う
       const chartData = JSON.parse(JSON.stringify(this.chartDataTemplate))
       // 選択した都道府県の人口構成を取得
@@ -141,7 +147,6 @@ export default {
         .then(result => {
           // 取得した人口構成データをグラフ描画用変数に代入
           result.forEach(element => {
-            chartData.labels.push(String(element.year));
             chartData.datasets[this.selectedPref.length - 1].data.push(element.value);
             this.chartDataTemplate.datasets[this.selectedPref.length - 1].data.push(element.value);
           });
@@ -151,6 +156,14 @@ export default {
         .catch(error => {
           console.log(error);
         });
+    },
+    removeChartData(prefName) {
+      // 選択を外した都道府県人口情報を削除
+      const removedPrefIndex = this.chartDataTemplate.datasets.findIndex(({label}) => label === prefName);
+      this.chartDataTemplate.datasets.splice(removedPrefIndex, 1);
+      // 値渡しで代入
+      const chartData = JSON.parse(JSON.stringify(this.chartDataTemplate));
+      this.chartData = chartData
     },
     getRandomColor() {
       const color = (Math.random() * 0xFFFFFF | 0).toString(16);
