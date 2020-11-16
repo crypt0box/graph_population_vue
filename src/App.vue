@@ -1,15 +1,33 @@
 <template>
   <v-app>
     <v-main>
-      <v-data-table
-        v-model="selectedPref"
-        :headers="headers"
-        :items="prefList"
-        :items-per-page="5"
-        item-key="prefCode"
-        show-select
-      ></v-data-table>
-      <chart :chart-data="chartData" :options="options"></chart>
+      <div class="main-content">
+        <v-row justify="center">
+          <v-card>
+
+              <div>
+                <v-data-table
+                  v-model="selectedPref"
+                  :headers="headers"
+                  :items="prefList"
+                  :items-per-page="5"
+                  item-key="prefCode"
+                  show-select
+                ></v-data-table>
+              </div>
+
+              <div v-if="chartData">
+                <v-row justify="center">
+                  <v-card-title>
+                    都道府県の人口構成
+                  </v-card-title>
+                </v-row>
+                <chart :chart-data="chartData" :options="options"></chart>
+              </div>
+
+          </v-card>
+        </v-row>
+      </div>
     </v-main>
   </v-app>
 </template>
@@ -142,3 +160,9 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.main-content {
+  padding: 2%;
+}
+</style>
