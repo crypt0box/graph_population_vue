@@ -50,12 +50,16 @@ export default {
           xAxes: [{
             scaleLabel: {
               display: true,
-              labelString: '西暦'
+              labelString: '年度'
             }
           }],
           yAxes: [{
             ticks: {
-              beginAtZero: true,
+              stepSize: 500000,
+            },
+            scaleLabel: {
+              display: true,
+              labelString: '人口数'
             }
           }]
         }
@@ -84,9 +88,9 @@ export default {
           );
           // グラフ描画用変数に抽出した都道府県情報のテンプレを追加
           this.chartDataTemplate.datasets.push({
-            label: 'Line Dataset',
+            label: newItem[0].prefName,
             data: [],
-            borderColor: '#CFD8DC',
+            borderColor: this.getRandomColor(),
             fill: false,
             type: 'line',
             lineTension: 0.3,
@@ -124,11 +128,16 @@ export default {
             this.chartDataTemplate.datasets[this.selectedPref.length - 1].data.push(element.value);
           });
           // 値渡しで代入
-          this.chartData = chartData
+          this.chartData = chartData;
         })
         .catch(error => {
           console.log(error);
         });
+    },
+    getRandomColor() {
+      const color = (Math.random() * 0xFFFFFF | 0).toString(16);
+      const randomColor = "#" + ("000000" + color).slice(-6);
+      return randomColor;
     }
   }
 };
