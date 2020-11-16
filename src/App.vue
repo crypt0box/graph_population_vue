@@ -100,7 +100,7 @@ export default {
     selectedPref: {
       deep: true,
       handler(newPref, oldPref) {
-        // チェックが[入ったか/外れたか]
+        // チェックが入った
         if (newPref.length >= oldPref.length) {
           // チェックをいれた都道府県のみを抽出
           const addedItem = newPref.filter(item => 
@@ -116,12 +116,14 @@ export default {
             lineTension: 0.3,
           });
           // グラフ描画用変数に抽出した都道府県の人口構成情報を代入
-          this.updateChartData(addedItem[0].prefCode);
-        // チェックを外した都道府県のみを抽出
+          this.addChartData(addedItem[0].prefCode);
+        // チェックが外れた
         } else {
+          // チェックを外した都道府県のみを抽出
           const removedItem = oldPref.filter(item => 
             !newPref.includes(item)
           );
+          // グラフ描画用変数からチェックを外した都道府県情報を削除
           this.removeChartData(removedItem[0].prefName);
         }
       }
