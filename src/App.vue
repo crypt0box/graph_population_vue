@@ -6,11 +6,23 @@
           <v-card>
 
               <div class="table-content">
+                <v-card-title>
+                  都道府県一覧
+                  <v-spacer></v-spacer>
+                  <v-text-field
+                    v-model="search"
+                    append-icon="mdi-magnify"
+                    label="都道府県名で検索"
+                    single-line
+                    hide-details
+                  ></v-text-field>
+                </v-card-title>
                 <v-data-table
                   v-model="selectedPref"
                   :headers="headers"
                   :items="prefList"
                   :items-per-page="5"
+                  :search="search"
                   item-key="prefCode"
                   show-select
                 >
@@ -49,6 +61,7 @@ export default {
   },
   data() {
     return {
+      search: '',
       headers: [
         {
           text: 'No.',
