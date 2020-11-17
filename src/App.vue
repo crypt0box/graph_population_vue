@@ -13,7 +13,9 @@
                   :items-per-page="5"
                   item-key="prefCode"
                   show-select
-                ></v-data-table>
+                >
+                <template v-slot:header.data-table-select> </template> 
+                </v-data-table>
               </div>
 
               <div v-if="chartData" class="graph-content">
