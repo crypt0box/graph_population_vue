@@ -5,7 +5,7 @@
         <v-row justify="center">
           <v-card>
 
-              <div>
+              <div class="table-content">
                 <v-data-table
                   v-model="selectedPref"
                   :headers="headers"
@@ -16,7 +16,7 @@
                 ></v-data-table>
               </div>
 
-              <div v-if="chartData">
+              <div v-if="chartData" class="graph-content">
                 <v-row justify="center">
                   <v-card-title>
                     都道府県の人口構成
@@ -195,5 +195,8 @@ export default {
 <style scoped>
 .main-content {
   padding: 2%;
+}
+.graph-content {
+  padding: 5%;
 }
 </style>
