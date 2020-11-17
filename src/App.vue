@@ -36,8 +36,12 @@
 import axios from "axios";
 import Chart from './components/Chart';
 
+const PREF_API_URL = 'https://opendata.resas-portal.go.jp/api/v1/prefectures';
+const PREF_POPULATION_API_URL = 'https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?-&prefCode';
+const API_KEY = 's0hFWhIFWYdTDQfS8M71K2SJ982pE3xJpmXi0h0w';
+
 export default {
-  name: "App",
+  name: 'App',
   components: {
     Chart,
   },
@@ -85,11 +89,11 @@ export default {
       }
     }
   },
-  mounted() {
+  created() {
     // ページを開いたと同時に都道府県名一覧を取得する
-    const prefUrl = 'https://opendata.resas-portal.go.jp/api/v1/prefectures';
+    const prefUrl = PREF_API_URL;
     axios
-      .get(prefUrl, { headers: { 'X-API-KEY': 's0hFWhIFWYdTDQfS8M71K2SJ982pE3xJpmXi0h0w'}})
+      .get(prefUrl, { headers: { 'X-API-KEY': API_KEY}})
       .then(response => {
         this.prefList = response.data.result;
       })
@@ -100,60 +104,72 @@ export default {
     selectedPref: {
       deep: true,
       handler(newPref, oldPref) {
-        // チェックが入った
-        if (newPref.length >= oldPref.length) {
+        const checked = newPref.length >= oldPref.length;
+        if (checked) {
           // チェックをいれた都道府県のみを抽出
           const addedItem = newPref.filter(item => 
             !oldPref.includes(item)
           );
           // グラフ描画用変数に抽出した都道府県情報のテンプレを追加
-          this.chartDataTemplate.datasets.push({
-            label: addedItem[0].prefName,
-            data: [],
-            borderColor: this.getRandomColor(),
-            fill: false,
-            type: 'line',
-            lineTension: 0.3,
-          });
+          this.addTemplate(addedItem[0].prefName);
           // グラフ描画用変数に抽出した都道府県の人口構成情報を代入
           this.addChartData(addedItem[0].prefCode);
-        // チェックが外れた
-        } else {
-          // チェックを外した都道府県のみを抽出
-          const removedItem = oldPref.filter(item => 
-            !newPref.includes(item)
-          );
-          // グラフ描画用変数からチェックを外した都道府県情報を削除
-          this.removeChartData(removedItem[0].prefName);
+          return
         }
+        // チェックを外した都道府県のみを抽出
+        const removedItem = oldPref.filter(item => 
+          !newPref.includes(item)
+        );
+        // グラフ描画用変数からチェックを外した都道府県情報を削除
+        this.removeChartData(removedItem[0].prefName);
       }
+    },
+  },
+  computed: {
+    getChartData() {
+      return JSON.parse(JSON.stringify(this.chartDataTemplate));
     },
   },
   methods: {
     // 指定した都道府県コードの人口構成をaxiosで取得
     async getPopulation(prefCode) {
       try {
-        const populationUrl = `https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?-&prefCode=${prefCode}`;
-        const response = await axios.get(populationUrl, { headers: { 'X-API-KEY': 's0hFWhIFWYdTDQfS8M71K2SJ982pE3xJpmXi0h0w'}});
+        const populationUrl = PREF_POPULATION_API_URL + '=' + prefCode;
+        const response = await axios.get(populationUrl, { headers: { 'X-API-KEY': API_KEY}});
         const items = response.data.result.data[0].data;
-        return items
+        return items;
       } catch (error) {
         console.log(error);
       }
     },
-    addChartData(prefCode) {
+    addTemplate(prefName) {
+      this.chartDataTemplate.datasets.push({
+        label: prefName,
+        data: [],
+        borderColor: this.getRandomColor(),
+        fill: false,
+        type: 'line',
+        lineTension: 0.3,
+      });
+    },
+    setChartData(population) {
       // グラフをリアクティブにするため、値渡しを行う
-      const chartData = JSON.parse(JSON.stringify(this.chartDataTemplate))
+      const chartData = this.getChartData;
+      // axiosで取得した人口構成情報をグラフ描画用変数に代入
+      population.forEach(element => {
+        const index = this.selectedPref.length - 1;
+        chartData.datasets[index].data.push(element.value);
+        this.chartDataTemplate.datasets[index].data.push(element.value);
+      });
+      // 値渡しで代入
+      this.chartData = chartData;
+    },
+    addChartData(prefCode) {
       // 選択した都道府県の人口構成を取得
       this.getPopulation(prefCode)
         .then(result => {
           // 取得した人口構成データをグラフ描画用変数に代入
-          result.forEach(element => {
-            chartData.datasets[this.selectedPref.length - 1].data.push(element.value);
-            this.chartDataTemplate.datasets[this.selectedPref.length - 1].data.push(element.value);
-          });
-          // 値渡しで代入
-          this.chartData = chartData;
+          this.setChartData(result);
         })
         .catch(error => {
           console.log(error);
@@ -164,12 +180,12 @@ export default {
       const removedPrefIndex = this.chartDataTemplate.datasets.findIndex(({label}) => label === prefName);
       this.chartDataTemplate.datasets.splice(removedPrefIndex, 1);
       // 値渡しで代入
-      const chartData = JSON.parse(JSON.stringify(this.chartDataTemplate));
-      this.chartData = chartData
+      const chartData = this.getChartData;
+      this.chartData = chartData;
     },
     getRandomColor() {
       const color = (Math.random() * 0xFFFFFF | 0).toString(16);
-      const randomColor = "#" + ("000000" + color).slice(-6);
+      const randomColor = '#' + ('000000' + color).slice(-6);
       return randomColor;
     }
   }
