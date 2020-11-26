@@ -52,7 +52,6 @@ import Chart from './components/Chart';
 
 const PREF_API_URL = 'https://opendata.resas-portal.go.jp/api/v1/prefectures';
 const PREF_POPULATION_API_URL = 'https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?-&prefCode';
-const API_KEY = 's0hFWhIFWYdTDQfS8M71K2SJ982pE3xJpmXi0h0w';
 
 export default {
   name: 'App',
@@ -108,7 +107,7 @@ export default {
     // ページを開いたと同時に都道府県名一覧を取得する
     const prefUrl = PREF_API_URL;
     axios
-      .get(prefUrl, { headers: { 'X-API-KEY': API_KEY}})
+      .get(prefUrl, { headers: { 'X-API-KEY': process.env.VUE_APP_API_KEY}})
       .then(response => {
         this.prefList = response.data.result;
       })
@@ -150,7 +149,7 @@ export default {
     async getPopulation(prefCode) {
       try {
         const populationUrl = PREF_POPULATION_API_URL + '=' + prefCode;
-        const response = await axios.get(populationUrl, { headers: { 'X-API-KEY': API_KEY}});
+        const response = await axios.get(populationUrl, { headers: { 'X-API-KEY': process.env.VUE_APP_API_KEY}});
         const items = response.data.result.data[0].data;
         return items;
       } catch (error) {
