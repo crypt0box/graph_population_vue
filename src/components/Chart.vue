@@ -6,6 +6,7 @@ export default {
   name: 'chart',
   mixins: [mixins.reactiveProp],
   props: ['chartData', 'options'],
+  // グラフ表示
   mounted() {
     if (this.chartData) {
       this.renderChart(this.chartData, this.options);
