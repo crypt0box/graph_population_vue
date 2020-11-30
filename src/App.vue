@@ -111,7 +111,7 @@ export default {
       .then(response => {
         this.prefList = response.data.result;
       })
-      .catch(error => console.log(error));
+      .catch(error => alert(error.message));
   },
   watch: {
     // 都道府県のチェックが[入る/外れる]と発火
@@ -153,7 +153,7 @@ export default {
         const items = response.data.result.data[0].data;
         return items;
       } catch (error) {
-        console.log(error);
+        alert(error.message);
       }
     },
     addTemplate(prefName) {
@@ -186,7 +186,7 @@ export default {
           this.setChartData(result);
         })
         .catch(error => {
-          console.log(error);
+          alert(error.message);
         });
     },
     removeChartData(prefName) {
