@@ -49,6 +49,7 @@
 <script>
 import axios from "axios";
 import Chart from './components/Chart';
+import { getRandomColor } from './module.js';
 
 const PREF_API_URL = 'https://opendata.resas-portal.go.jp/api/v1/prefectures';
 const PREF_POPULATION_API_URL = 'https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?-&prefCode';
@@ -160,7 +161,7 @@ export default {
       this.chartDataTemplate.datasets.push({
         label: prefName,
         data: [],
-        borderColor: this.getRandomColor(),
+        borderColor: getRandomColor(),
         fill: false,
         type: 'line',
         lineTension: 0.3,
@@ -197,11 +198,6 @@ export default {
       const chartData = this.getChartData;
       this.chartData = chartData;
     },
-    getRandomColor() {
-      const color = (Math.random() * 0xFFFFFF | 0).toString(16);
-      const randomColor = '#' + ('000000' + color).slice(-6);
-      return randomColor;
-    }
   }
 };
 </script>
